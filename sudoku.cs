@@ -3,7 +3,7 @@ using System.IO;
 
 namespace sudoku
 {
-    class Program
+    public class Program
     {
         class Number
         {
@@ -12,7 +12,7 @@ namespace sudoku
 
         }
 
-        private Number[,] number = new Number[9, 9];
+        private readonly Number[,] _number = new Number[MaxNumber, MaxNumber];
 
         static void Main(string[] args)
         {
@@ -21,24 +21,26 @@ namespace sudoku
             a.InsertNumbers();
         }
 
-        private void InsertNumbers()
+        public const int MaxNumber = 9;
+        public readonly int RootMaxNumber = (int) Math.Sqrt(MaxNumber);
+
+        public void InsertNumbers()
         {
             int i = 0, j = 0;
             while (i > -1)
             {
                 int n = 1;
                 j = 0;
-                while (n > 0 && n <= 9)
+                while (n > 0 && n <= MaxNumber)
                 {
-                    while (j > -1 && j < 9)
+                    while (j > -1 && j < MaxNumber)
                     {
-                        if (n > 9) break;
+                        if (n > MaxNumber) break;
                         if (Place(i, j, n))
                         {
 
-                            number[i, j].Value = n;
+                            _number[i, j].Value = n;
                             n++;
-                            //PrintAll();
                             j = 0;
                         }
                         else
@@ -46,7 +48,7 @@ namespace sudoku
                             j++;
                         }
                     }
-                    if (n == 10)
+                    if (n == MaxNumber + 1)
                     {
                         i++;
                         n = 1;
@@ -63,18 +65,18 @@ namespace sudoku
                             j = GetIndexofN(i, n);
                             if (j != -2 && j != -1)
                             {
-                                number[i, j].Value = 0;
+                                _number[i, j].Value = 0;
                                 j++;
                             }
                             i--;
-                            n = 9;
+                            n = MaxNumber;
                         }
                     top:
 
                         j = GetIndexofN(i, n);
                         if (j != -2)
                         {
-                            number[i, j].Value = 0;
+                            _number[i, j].Value = 0;
                             j++;
                         }
                         else
@@ -84,10 +86,10 @@ namespace sudoku
                                 j = GetIndexofN(i, n);
                                 if (j != -2)
                                 {
-                                    number[i, j].Value = 0;
+                                    _number[i, j].Value = 0;
                                     j++;
                                 }
-                                n = 9;
+                                n = MaxNumber;
                                 i--;
                             }
                             else
@@ -104,21 +106,17 @@ namespace sudoku
             if (i < 0)
             {
                 PrintAll();
+                Console.WriteLine("Something is Wrong please see the input values are proper");
                 Environment.Exit(1);
             }
-            if (n == 0)
-            {
-                Console.WriteLine("number is 0");
-                Environment.Exit(2);
-            }
-            for (int j = 0; j < 9; j++)
+            for (int j = 0; j < MaxNumber; j++)
             {
 
-                if (number[i, j].Value == n && number[i, j].IsConstent)
+                if (_number[i, j].Value == n && _number[i, j].IsConstent)
                 {
                     return -2;
                 }
-                if (number[i, j].Value == n && !number[i, j].IsConstent)
+                if (_number[i, j].Value == n && !_number[i, j].IsConstent)
                 {
                     return j;
                 }
@@ -128,19 +126,19 @@ namespace sudoku
 
         private bool Place(int i, int j, int n)
         {
-            if (i >= 9)
+            if (i >= MaxNumber)
             {
                 PrintAll();
                 Environment.Exit(0);
             }
-            if (number[i, j].IsConstent && number[i, j].Value == n)
+            if (_number[i, j].IsConstent && _number[i, j].Value == n)
             {
                 return true;
             }
 
-            for (int k = 0; k < 9; k++)
+            for (int k = 0; k < MaxNumber; k++)
             {
-                if (number[i, j].Value != 0 || (number[i, k].Value == n || number[k, j].Value == n) || !Check3X3(i, j, n))
+                if (_number[i, j].Value != 0 || (_number[i, k].Value == n || _number[k, j].Value == n) || !Check3X3(i, j, n))
                 {
                     return false;
                 }
@@ -151,11 +149,11 @@ namespace sudoku
         private void PrintAll()
         {
             string temp = string.Empty;
-            for (int k = 0; k < 9; k++)
+            for (int k = 0; k < MaxNumber; k++)
             {
-                for (int l = 0; l < 9; l++)
+                for (int l = 0; l < MaxNumber; l++)
                 {
-                    temp += number[k, l].Value + ",";
+                    temp += _number[k, l].Value + ",";
                 }
                 temp += "\n";
             }
@@ -165,11 +163,11 @@ namespace sudoku
 
         private bool Check3X3(int i, int j, int n)
         {
-            for (var k = (i / 3) * 3; k < ((i + 3) / 3) * 3; k++)
+            for (var k = (i / RootMaxNumber) * RootMaxNumber; k < ((i + RootMaxNumber) / RootMaxNumber) * RootMaxNumber; k++)
             {
-                for (var l = (j / 3) * 3; l < ((j + 3) / 3) * 3; l++)
+                for (var l = (j / RootMaxNumber) * RootMaxNumber; l < ((j + RootMaxNumber) / RootMaxNumber) * RootMaxNumber; l++)
                 {
-                    if (n == number[k, l].Value)
+                    if (n == _number[k, l].Value)
                     {
                         return false;
                     }
@@ -178,9 +176,10 @@ namespace sudoku
             return true;
         }
 
-        private void ReadInputFromFile()
+        public void ReadInputFromFile(string filename=@"e:\sudoku.txt")
         {
-            var readAllLines = File.ReadAllLines(@"e:\sudoku.txt");
+            if (!File.Exists(filename)) throw new FileNotFoundException(filename);
+            var readAllLines = File.ReadAllLines(filename);
 
             for (var i = 0; i < readAllLines.Length; i++)
             {
@@ -194,7 +193,7 @@ namespace sudoku
                     {
                         constent = true;
                     }
-                    number[i, j] = new Number()
+                    _number[i, j] = new Number()
                     {
                         Value = value,
                         IsConstent = constent
